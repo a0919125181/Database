@@ -53,6 +53,9 @@ public class Features {
 	              String s = "電影名稱：" + rs.getString("movieName") + ",  類型：" + rs.getString("category") +",  上映時間："+rs.getString("debut");
 	              System.out.println(s);
 	        }
+	        if (rs.next() == false) {
+	        	System.out.println("查無資料");
+	        }
 		}
 		else if(sCode.equals("2")){
 			System.out.println("請輸入演員名稱");
@@ -61,6 +64,9 @@ public class Features {
 	        while(rs.next()){
 	              String s = "電影名稱：" + rs.getString("movieName") + ",類型：" + rs.getString("category") +",上映時間："+rs.getString("debut");
 	              System.out.println(s);
+	        }
+	        if (rs.next() == false) {
+	        	System.out.println("查無資料");
 	        }
 		}
 		
@@ -72,6 +78,9 @@ public class Features {
 	              String s = "電影名稱：" + rs.getString("movieName") + ",類型：" + rs.getString("category") +",上映時間："+rs.getString("debut");
 	              System.out.println(s);
 	        }
+	        if (rs.next() == false) {
+	        	System.out.println("查無資料");
+	        }
 		}
 		else if(sCode.equals("4")){
 			System.out.println("請輸入年份");
@@ -81,6 +90,9 @@ public class Features {
 	              String s = "電影名稱：" + rs.getString("movieName") + ",類型：" + rs.getString("category") +",上映時間："+rs.getString("debut");
 	              System.out.println(s);
 	        }
+	        if (rs.next() == false) {
+	        	System.out.println("查無資料");
+	        }
 		}
 	}
 	
@@ -89,6 +101,9 @@ public class Features {
         while(rs.next()){
               String s = "演員名稱：" + rs.getString("actName") + ",演員生日：" + rs.getString("actBirth");
               System.out.println(s);
+        }
+        if (rs.next() == false) {
+        	System.out.println("查無資料");
         }
 	}
 	
