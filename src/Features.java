@@ -108,6 +108,7 @@ public class Features {
 	}
 	
 	private static void addAll() throws Exception{
+		// 新增演員
 		System.out.println("請輸入欲新增項目 1.演員   2.電影   3.");
 		String item = sc.nextLine();
 		if(item.equals("1")){
@@ -122,6 +123,7 @@ public class Features {
 				System.out.println(s);
 			}
 		}
+		// 新增電影
 		else if(item.equals("2")){
 			System.out.println("請輸入電影名稱：");
 			String movie = sc.nextLine();
