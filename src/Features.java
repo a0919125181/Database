@@ -7,14 +7,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.TreeMap;
 
 public class Features {
 	private static final String dbClassName = "org.mariadb.jdbc.Driver";
-    private static final String url = "jdbc:mariadb://140.127.74.226:3306/410477010";
+    private static final String url = "jdbc:mariadb://140.127.74.210:3306/410477010"; //(210)
     private static final String username = "410477010";
     private static final String password = "4t78n";
 	static Connection connection;
@@ -292,17 +295,35 @@ public class Features {
 			String custName = rs.getString("custName");
 			conMap.put(custName, 0);
 		}
-		ResultSet rs1 =smt.executeQuery("SELECT * FROM download Natural join customer Natural join movie ");
+		ResultSet rs1 =smt.executeQuery("SELECT * FROM download Natural join customer Natural join movie where download.customerID = customer.custID and download.movieName = movie.movieName");
 		while(rs1.next()){
 			String custName = rs1.getString("custName");
 			int consumption = rs1.getInt("cost");
 			consumption = consumption + conMap.get(custName);
 			conMap.put(custName,consumption);
+			//System.out.println(custName+":"+consumption);
 		}
 		Iterator<String> it = conMap.keySet().iterator();
+		Comparator<Integer> keyComparator = new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				// TODO Auto-generated method stub
+				return o2.compareTo(o1);
+			}
+	    };
+		Map<Integer,String> temp = new TreeMap<Integer,String>(keyComparator);
 		while(it.hasNext()){
 			Object key =it.next();
-			System.out.println(conMap.get(key)+" "+key);
+			temp.put(conMap.get(key), (String) key);
+			//System.out.println(key+" "+conMap.get(key));
 		}
+		int i = 0;
+		for (Entry<Integer, String> entry : temp.entrySet()) {
+	        System.out.println(entry.getValue() + ":" + entry.getKey());
+	        i++;
+	        if(i>9){
+	        	break;
+	        }
+	    }
 	}
 }
