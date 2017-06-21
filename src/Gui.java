@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.*;
 
@@ -13,8 +14,9 @@ public class Gui {
 	private static JPanel movieP;
 
 	
+	public Gui() { }
 	
-	private static void initialize(){
+	void initialize(){
 		Font font = new Font(Font.DIALOG, Font.BOLD, 30);
 		
 		frame = new JFrame();
@@ -32,6 +34,23 @@ public class Gui {
 				movieP = new JPanel();
 				movieP.setBackground(Color.YELLOW);
 				movieP.setBounds(300, 0, 900, 800);
+				
+				/*Vector allMovie = new Vector();
+				try {
+					String[] list = Features.listAll();
+					int length = list.length;
+					int i=0;
+					while(i<length){
+						allMovie.add(list[i]);
+						i++;
+					}
+					JList allList = new JList(allMovie);
+					allList.setBounds(50, 100, 200, 100);
+					movieP.add(allList);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
 				frame.add(movieP);
 				movieP.updateUI();
 			}
@@ -75,7 +94,4 @@ public class Gui {
 		frame.setVisible(true);
 	}
 	
-	public static void main(String[]args){
-		initialize();
-	}
 }
