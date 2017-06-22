@@ -20,19 +20,18 @@ public class Features {
     private static final String password = "4t78n";
     private static Connection connection;
     private static Statement smt;
-    //private static ResultSet rs;
     private static Scanner sc;    
-    private static HashMap<String, Integer> movieMap;
+
     
 	public static void main(String [] args) throws Exception{
 		connectDatabase();
 		sc = new Scanner(System.in);
 		int exit = 1;
 		while (exit != 0) {
-			System.out.println("請輸入功能代碼： 1.查詢    2.查看前10大會員   3.新增   4.管理會員    5.最新年度前10下載量電影     6.     7.離開");
+			System.out.println("請輸入功能代碼： 1.查詢    2.查看前10大會員   3.新增   4.管理會員    5.最新年度前10下載量電影     6.離開");
 			String funcCode = sc.nextLine();
 			if (funcCode.equals("1")) {
-				System.out.println("請輸入查詢項目: 1.電影   2.演員    3.銷售狀況    4.特定會員");
+				System.out.println("請輸入查詢項目: 1.電影   2.演員    3.銷售狀況    4.會員愛好");
 				String item = sc.nextLine();
 				if (item.equals("1")) {
 					searchMovie();
@@ -44,7 +43,7 @@ public class Features {
 					saleStatus();
 				}
 				else if (item.equals("4")) {
-					saleStatus();
+					memberStatus();
 				}
 			}
 			if(funcCode.equals("2")){
@@ -384,7 +383,7 @@ public class Features {
 	// 最新年度前10下載量
 	private static void topTenMovie() throws SQLException{
 		ResultSet rs = smt.executeQuery("SELECT * FROM download");
-		movieMap = new HashMap<String, Integer>();
+		HashMap<String, Integer> movieMap = new HashMap<String, Integer>();
 		while(rs.next()){
 			String key = rs.getString("movieName");
 			try{
@@ -456,5 +455,102 @@ public class Features {
 			else{continue;}
 		}
 		System.out.println("電影類型:"+type+" 在"+maxMonth+"月銷售量最高，共"+max+"次。");
+	}
+	
+	private static void memberStatus() throws SQLException{
+		System.out.println("請輸入欲查看之會員名稱:");
+		String memberName = sc.nextLine();
+		System.out.println("請選擇查看項目: 1.最愛男演員   2.最愛女演員   3.最愛電影類型");
+		String item = sc.nextLine();
+		if(item.equals("1")){
+			HashMap<String, Integer> actMap = new HashMap<String, Integer>();
+			ResultSet rs = smt.executeQuery("SELECT * FROM download Natural join customer Natural join perform Natural join actor WHERE download.customerID=customer.custID and download.movieName=perform.movieName and perform.actID=actor.actID and actSex='M' and custName='"+memberName+"'");
+			while(rs.next()){
+				String actName = rs.getString("actName");
+				Integer dTime = actMap.get(actName);
+				if(dTime == null){
+					dTime = 1;
+					actMap.put(actName, dTime);
+				}
+				else{
+					dTime +=1;
+					actMap.put(actName, dTime);
+				}
+			}
+			int maxTime = 0;
+			String favorite ="";
+			for (Entry<String, Integer> entry : actMap.entrySet()) {
+		        //System.out.println(entry.getValue() + "   下載次數:" + entry.getKey());
+		        int tempTime = entry.getValue();
+		        if(maxTime<tempTime){
+		        	favorite = entry.getKey();
+		        	maxTime = tempTime;
+		        }
+		        else if (maxTime==tempTime){
+		        	favorite = favorite+" and "+entry.getKey();
+		        }
+		    }
+			System.out.println(memberName+"最喜歡的男演員:"+favorite);
+		}
+		else if (item.equals("2")){
+			HashMap<String, Integer> actMap = new HashMap<String, Integer>();
+			ResultSet rs = smt.executeQuery("SELECT * FROM download Natural join customer Natural join perform Natural join actor WHERE download.customerID=customer.custID and download.movieName=perform.movieName and perform.actID=actor.actID and actSex='F' and custName='"+memberName+"'");
+			while(rs.next()){
+				String actName = rs.getString("actName");
+				Integer dTime = actMap.get(actName);
+				if(dTime == null){
+					dTime = 1;
+					actMap.put(actName, dTime);
+				}
+				else{
+					dTime +=1;
+					actMap.put(actName, dTime);
+				}
+			}
+			int maxTime = 0;
+			String favorite ="";
+			for (Entry<String, Integer> entry : actMap.entrySet()) {
+		        //System.out.println(entry.getValue() + "   下載次數:" + entry.getKey());
+		        int tempTime = entry.getValue();
+		        if(maxTime<tempTime){
+		        	favorite = entry.getKey();
+		        	maxTime = tempTime;
+		        }
+		        else if (maxTime==tempTime){
+		        	favorite = favorite+" and "+entry.getKey();
+		        }
+		    }
+			System.out.println(memberName+"最喜歡的女演員:"+favorite);
+		}
+		else if (item.equals("3")){
+			HashMap<String, Integer> movieMap = new HashMap<String, Integer>();
+			ResultSet rs = smt.executeQuery("SELECT * FROM download Natural join customer Natural join genre WHERE download.customerID=customer.custID and genre.movieName=download.movieName and custName='"+memberName+"'");
+			while(rs.next()){
+				String mGenre = rs.getString("movieGenre");
+				Integer dTime = movieMap.get(mGenre);
+				if(dTime == null){
+					dTime = 1;
+					movieMap.put(mGenre, dTime);
+				}
+				else{
+					dTime = dTime+1;
+					movieMap.put(mGenre,dTime);
+				}
+			}
+			int maxTime = 0;
+			String favorite ="";
+			for (Entry<String, Integer> entry : movieMap.entrySet()) {
+		        //System.out.println(entry.getValue() + "   下載次數:" + entry.getKey());
+		        int tempTime = entry.getValue();
+		        if(maxTime<tempTime){
+		        	favorite = entry.getKey();
+		        	maxTime = tempTime;
+		        }
+		        else if (maxTime==tempTime){
+		        	favorite = favorite+" and "+entry.getKey();
+		        }
+		    }
+			System.out.println(memberName+"最喜歡的類型:"+favorite+",共下載"+maxTime+"次。");
+		}	
 	}
 }
