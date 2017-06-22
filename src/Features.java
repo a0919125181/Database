@@ -20,7 +20,7 @@ public class Features {
     private static final String password = "4t78n";
     private static Connection connection;
     private static Statement smt;
-    private static ResultSet rs;
+    //private static ResultSet rs;
     private static Scanner sc;    
     private static HashMap<String, Integer> movieMap;
     
@@ -396,38 +396,44 @@ public class Features {
 				movieMap.put(key,value);
 			}
 		}
-		String [] sort = new String[100000];
-		int maxTime = 0;
-		for (Object key : movieMap.keySet()) {
-            	String akey = (String) key;
-            	int time = movieMap.get(key);
-            	if(sort[time] == null){
-            		sort[time] = akey;
-            	}
-            	else{
-            		sort[time] +="\n"+akey;
-            	}
-            	if (time>maxTime){
-            		maxTime = time;
-            	}
-        }
-		int i = 0;
-		while(i<10||maxTime>0){
-			try{
-				String result = sort[maxTime]+"\n下載次數："+maxTime+"\n";
-				if(sort[maxTime] ==null){
-					continue;
-				}
-				else{
-					System.out.println(result);
-					i++;
-					maxTime--;
-				}
+		Iterator<String> it = movieMap.keySet().iterator();
+		Comparator<Integer> keyComparator = new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				// TODO Auto-generated method stub
+				return o2.compareTo(o1);
 			}
-			catch(ArrayIndexOutOfBoundsException e){
-				break;
+	    };
+		Map<Integer,String> temp = new TreeMap<Integer,String>(keyComparator);
+		while(it.hasNext()){
+			Object key =it.next();
+			Integer value = movieMap.get(key);
+			if(temp.get(value) == null){
+				temp.put(value, (String) key);
 			}
-		}	
+			else{
+				String tempS = temp.get(value) +","+ (String) key;
+				temp.put(value,tempS);
+			}
+		}
+		int topTen = 0;
+		for (Entry<Integer, String> entry : temp.entrySet()) {
+	        //System.out.println(entry.getValue() + "   下載次數:" + entry.getKey());
+	        int downloadTime = entry.getKey();
+	        String sameMovie = entry.getValue();
+	        String [] splitSame = sameMovie.split(",");
+	        for(int i=0;i<splitSame.length;i++){
+	        	System.out.println(splitSame[i]+"   下載次數:"+downloadTime);
+	        	topTen++;
+	        	if(topTen>9){
+		        	break;
+		        }
+	        }
+	        if(topTen>9){
+	        	break;
+	        }
+	    }
+			
 	}
 	
 	private static void saleStatus() throws SQLException{
