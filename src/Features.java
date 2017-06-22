@@ -18,10 +18,10 @@ public class Features {
     private static final String url = "jdbc:mariadb://140.127.74.210:3306/410477010"; //(210)
     private static final String username = "410477010";
     private static final String password = "4t78n";
-	static Connection connection;
-    static Statement smt;
-    static ResultSet rs;
-    static Scanner sc;    
+    private static Connection connection;
+    private static Statement smt;
+    private static ResultSet rs;
+    private static Scanner sc;    
     private static HashMap<String, Integer> movieMap;
     
 	public static void main(String [] args) throws Exception{
