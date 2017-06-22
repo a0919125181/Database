@@ -2,6 +2,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Comparator;
@@ -17,10 +18,10 @@ public class Features {
     private static final String url = "jdbc:mariadb://140.127.74.210:3306/410477010"; //(210)
     private static final String username = "410477010";
     private static final String password = "4t78n";
-	static Connection connection;
-    static Statement smt;
-    static ResultSet rs;
-    static Scanner sc;    
+    private static Connection connection;
+    private static Statement smt;
+    private static ResultSet rs;
+    private static Scanner sc;    
     private static HashMap<String, Integer> movieMap;
     
 	public static void main(String [] args) throws Exception{
@@ -83,9 +84,6 @@ public class Features {
 		if(sCode.equals("1")){
 			int iCount = 1;
 			ResultSet rs = smt.executeQuery("SELECT * FROM movie");
-	        if (rs.next() == false) {
-	        	System.out.println("查無資料");
-	        }
 	        while(rs.next()){
 	              String s = iCount + ". 電影名稱：" + rs.getString("movieName") 
 	              					+ ", 上映時間：" + rs.getString("debut");
@@ -95,7 +93,6 @@ public class Features {
 		}
 		
 		// 輸入演員查詢電影
-		// ***少第一分資料***
 		else if(sCode.equals("2")){
 			System.out.println("請輸入演員名稱");
 			String actName = sc.nextLine();
@@ -116,16 +113,16 @@ public class Features {
 				endYear = i;
 			}
 			int iCount = 1;
-			ResultSet rs =smt.executeQuery("SELECT * FROM actor Natural join perform Natural join movie " 
+			ResultSet rs = smt.executeQuery("SELECT * FROM actor Natural join perform Natural join movie " 
 										 + "WHERE actName = '"+actName+"' " + " and " + beginYear+"<=debut and debut<="+endYear);
-	        if (rs.next() == false) {
-	        	System.out.println("查無資料");
-	        }
 	        while(rs.next()){
 	              String s = iCount + ". 電影名稱：" + rs.getString("movieName") 
 	              					+ ", 上映時間：" + rs.getString("debut");
 	              System.out.println(s);
 	              iCount++;
+	        }
+	        if (rs.first() == false) {
+	        	System.out.println("查無資料");
 	        }
 		}
 		
@@ -135,11 +132,8 @@ public class Features {
 			System.out.println("請輸入導演名稱");
 			String dirName = sc.nextLine();
 			int iCount = 1;
-			ResultSet rs =smt.executeQuery("SELECT * FROM director Natural join movie "
+			ResultSet rs =smt.executeQuery("SELECT * FROM director NATURAL JOIN movie "
 										 + "WHERE dirName = '"+dirName+"'");
-	        if (rs.next() == false) {
-	        	System.out.println("查無資料");
-	        }
 	        while(rs.next()){
 	              String s = iCount + ". 電影名稱：" + rs.getString("movieName")
 	              					+ ", 上映時間：" + rs.getString("debut")
@@ -147,41 +141,42 @@ public class Features {
 	              System.out.println(s);
 	              iCount++;
 	        }
+	        if (rs.first() == false) {
+	        	System.out.println("查無資料");
+	        }
 		}
 		
 		// 由年份來查詢電影
-		// ***少第一分資料***
 		else if(sCode.equals("4")){
 			System.out.println("請輸入年份");
 			String year = sc.nextLine();
 			int iCount = 1;
 			ResultSet rs =smt.executeQuery("SELECT * FROM movie where debut='"+year+"'");
-	        if (rs.next() == false) {
-	        	System.out.println("查無資料");
-	        }
 	        while(rs.next()){
 	              String s = iCount + ". 電影名稱：" + rs.getString("movieName")
 	              					+ ", 上映時間：" + rs.getString("debut");
 	              System.out.println(s);
 	              iCount++;
 	        }
+	        if (rs.first() == false) {
+	        	System.out.println("查無資料");
+	        }
 		}
 	}
 	
 	// 搜尋演員
-	// ***少第一分資料***
 	private static void searchActor() throws Exception{
 		int i = 1;
         ResultSet rs =smt.executeQuery("SELECT * FROM actor");
-        if (rs.next() == false) {
-        	System.out.println("查無資料");
-        }
         while(rs.next()){
               String s = i + ". 演員名稱：" + rs.getString("actName") 
               			   + ", 演員生日：" + rs.getString("actBirth")
               			   + ", 演員性別：" + rs.getString("actSex");
               System.out.println(s);
               i++;
+        }
+        if (rs.first() == false) {
+        	System.out.println("查無資料");
         }
 	}
 	
@@ -227,7 +222,7 @@ public class Features {
 	
 	// 新增功能
 	private static void addAll() throws Exception{
-		System.out.println("請輸入欲新增項目 ：1.演員   2.電影    3.會員 ");
+		System.out.println("請輸入欲新增項目 ：1.演員   2.導演	3.電影    4.會員 ");
 		String item = sc.nextLine();
 		
 		// 新增演員
@@ -258,14 +253,38 @@ public class Features {
 			}
 		}
 		
-		// 新增電影
+		// 新增導演
 		else if(item.equals("2")){
+			System.out.println("請輸入導演姓名:");
+			String dirName = sc.nextLine();
+			System.out.println("請輸入導演出生日期：");
+			String dirBirth = sc.nextLine();
+			ResultSet rs = smt.executeQuery("SELECT * FROM director");
+			rs.last();
+			int number = rs.getRow()+1;
+			PreparedStatement pSmt = connection.prepareStatement("insert into director(dirID,dirName,dirBirth) values(?,?,?)");
+			pSmt.setString(1, Integer.toString(number));
+			pSmt.setString(2, dirName);
+			pSmt.setString(3, dirBirth);
+			pSmt.executeUpdate(); 
+			
+			// 確認已新增新導演
+			ResultSet rs1 = smt.executeQuery("SELECT * FROM director WHERE dirName='"+dirName+"'");
+			while(rs1.next()){
+				String s = "已新增   導演姓名：" + rs1.getString("dirName") +",  生日："+rs1.getString("dirBirth");
+				System.out.println(s);
+			}
+		}
+		
+		// 新增電影
+		// ***新增有誤***
+		else if(item.equals("3")){
 			System.out.println("請輸入電影名稱：");
 			String movie = sc.nextLine();
 			System.out.println("請輸入電影分類：");
 			String cate = sc.nextLine();
-			System.out.println("請輸入出版日期：");
-			int debut = sc.nextInt();
+			System.out.println("請輸入出版年份：");
+			String debut = sc.nextLine();
 			System.out.println("請輸入下載費用：");
 			String cost = sc.nextLine();
 		    System.out.println("請輸入本片導演：");
@@ -276,8 +295,8 @@ public class Features {
 			// 新增movie table資料
 			PreparedStatement pSmt = connection.prepareStatement("insert into movie(movieName,debut,cost,publish) values(?,?,?,?)");
 			pSmt.setString(1, movie);
-			pSmt.setInt(2, debut);
-			pSmt.setString(3, cost);
+			pSmt.setInt(2, Integer.parseInt(debut));
+			pSmt.setInt(3, Integer.parseInt(cost));
 			pSmt.setString(4, publish);
 			pSmt.executeUpdate();
 
@@ -286,13 +305,36 @@ public class Features {
 			pSmt2.setString(1, movie);
 			pSmt2.setString(2, cate);
 			pSmt2.executeUpdate();
+			
+			// 新增direct table資料			
+			String number = "dirID";
+			ResultSet rs = smt.executeQuery("SELECT * FROM director");
+			while(rs.next()){
+				String sID = rs.getString("dirID");
+				String sName = rs.getString("dirName");
+				if (sName.equals(dir)) {
+					number = sID;
+				}
+			}
+			PreparedStatement pSmt3 = connection.prepareStatement("insert into direct(dirID,movieName) values(?,?)");
+			pSmt3.setString(1, number);
+			pSmt3.setString(2, movie);
+			pSmt3.executeUpdate();
+			
+			// 確認已新增新電影
+			ResultSet rs1 = smt.executeQuery("SELECT * FROM movie direct JOIN director "
+										   + "WHERE movieName='"+movie+"' AND dirName='"+dir+"'");
+			while(rs1.next()){
+				String s = "已新增   電影名稱：" + rs1.getString("movieName") +",  導演："+rs1.getString("dirName");
+				System.out.println(s);
+			}
 		}
 		
 		// 新增會員
-		else if(item.equals("3")){
+		else if(item.equals("4")){
 			System.out.println("請輸入會員姓名");
 			String custName = sc.nextLine();
-			ResultSet rs =smt.executeQuery("SELECT * FROM customer");
+			ResultSet rs = smt.executeQuery("SELECT * FROM customer");
 			rs.last();
 			int number = rs.getRow()+1;
 			PreparedStatement pSmt = connection.prepareStatement("insert into customer(custID,custName,balance) values(?,?,?)");
@@ -302,9 +344,9 @@ public class Features {
 			pSmt.executeUpdate(); 
 			
 			// 確認已新增新會員
-			ResultSet rs1 = smt.executeQuery("SELECT * FROM customer where custName='"+custName+"'");
+			ResultSet rs1 = smt.executeQuery("SELECT * FROM customer WHERE custName='"+custName+"'");
 			while(rs1.next()){
-				String s = "已新增   會員名稱：" + rs.getString("custName") +",  餘額："+rs.getString("Balance");
+				String s = "已新增   會員名稱：" + rs1.getString("custName") +",  餘額："+rs1.getString("Balance");
 				System.out.println(s);
 			}
 		}
@@ -339,7 +381,7 @@ public class Features {
 		}
 	}
 	
-	// 最新年度前10下載量電
+	// 最新年度前10下載量
 	private static void topTenMovie() throws SQLException{
 		ResultSet rs = smt.executeQuery("SELECT * FROM download");
 		movieMap = new HashMap<String, Integer>();
