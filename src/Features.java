@@ -1,12 +1,9 @@
-import java.awt.List;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,16 +27,16 @@ public class Features {
 		connectDatabase();
 		sc = new Scanner(System.in);
 		int exit = 1;
-		while(exit!=0){
+		while (exit != 0) {
 			System.out.println("請輸入功能代碼： 1.查詢    2.查看前10大顧客   3.新增   4.管理會員    5.最新年度前10下載量電影   6.離開");
 			String funcCode = sc.nextLine();
-			if(funcCode.equals("1")){
+			if (funcCode.equals("1")) {
 				System.out.println("請輸入查詢項目: 1.電影   2.演員");
 				String item = sc.nextLine();
-				if(item.equals("1")){
+				if (item.equals("1")) {
 					searchMovie();
 				}
-				else if (item.equals("2")){
+				else if (item.equals("2")) {
 					searchActor();
 				}
 			}
@@ -63,25 +60,36 @@ public class Features {
 		}
 	}
 	
+	// 連接資料庫
 	public static void connectDatabase() throws Exception{
+		System.out.println("連接資料庫...");
     	connection = DriverManager.getConnection(url, username, password);
     	smt =connection.createStatement();
         System.out.println("已連接!");
     }
 	
+	// 搜尋電影
 	private static void searchMovie() throws Exception{
-		System.out.println("若要列出所有電影請按1，若要由演員來查詢電影請按2，若要由導演來查詢電影請按3，若要由年份來查詢電影請按4");
+		System.out.println("若要列出所有電影請輸入1，若要由演員來查詢電影請輸入2，若要由導演來查詢電影請輸入3，若要由年份來查詢電影請輸入4");
 		String sCode = sc.nextLine();
+		
+		// 列出所有電影
 		if(sCode.equals("1")){
-			ResultSet rs =smt.executeQuery("SELECT * FROM movie");
-	        while(rs.next()){
-	              String s = "電影名稱：" + rs.getString("movieName") + ",  上映時間："+rs.getString("debut");
-	              System.out.println(s);
-	        }
+			int iCount = 1;
+			ResultSet rs = smt.executeQuery("SELECT * FROM movie");
 	        if (rs.next() == false) {
 	        	System.out.println("查無資料");
 	        }
+	        while(rs.next()){
+	              String s = iCount + ". 電影名稱：" + rs.getString("movieName") 
+	              					+ ", 上映時間：" + rs.getString("debut");
+	              System.out.println(s);
+	              iCount++;
+	        }
 		}
+		
+		// 輸入演員查詢電影
+		// ***少第一分資料***
 		else if(sCode.equals("2")){
 			System.out.println("請輸入演員名稱");
 			String actName = sc.nextLine();
@@ -89,58 +97,134 @@ public class Features {
 			String movieYear = sc.nextLine();
 			String [] year = movieYear.split("~");
 			int beginYear = Integer.parseInt(year[0]);
-			int endYear = Integer.parseInt(year[1]);
-			ResultSet rs =smt.executeQuery("SELECT * FROM actor Natural join perform Natural join movie where actName='"+actName+"'"+" and "+beginYear+"<=debut and debut<="+endYear);
-	        while(rs.next()){
-	              String s = "電影名稱：" + rs.getString("movieName") +",上映時間："+rs.getString("debut");
-	              System.out.println(s);
-	        }
+			int endYear = 0;
+			try {
+				endYear = Integer.parseInt(year[1]);
+			}
+			catch (Exception e){ 
+				endYear = Integer.parseInt(year[0]);
+			}
+			if (beginYear > endYear) {
+				int i = beginYear;
+				beginYear = endYear;
+				endYear = i;
+			}
+			int iCount = 1;
+			ResultSet rs =smt.executeQuery("SELECT * FROM actor Natural join perform Natural join movie " 
+										 + "WHERE actName = '"+actName+"' " + " and " + beginYear+"<=debut and debut<="+endYear);
 	        if (rs.next() == false) {
-	        	System.out.println("已查無資料");
+	        	System.out.println("查無資料");
+	        }
+	        while(rs.next()){
+	              String s = iCount + ". 電影名稱：" + rs.getString("movieName") 
+	              					+ ", 上映時間：" + rs.getString("debut");
+	              System.out.println(s);
+	              iCount++;
 	        }
 		}
 		
+		// 輸入導演查詢電影
+		// ***全部導演變成輸入的導演名稱***
 		else if(sCode.equals("3")){
 			System.out.println("請輸入導演名稱");
 			String dirName = sc.nextLine();
-			ResultSet rs =smt.executeQuery("SELECT * FROM director Natural join movie where dirName='"+dirName+"'");
-	        while(rs.next()){
-	              String s = "電影名稱：" + rs.getString("movieName") + ",類型：" + rs.getString("category") +",上映時間："+rs.getString("debut");
-	              System.out.println(s);
-	        }
+			int iCount = 1;
+			ResultSet rs =smt.executeQuery("SELECT * FROM director Natural join movie "
+										 + "WHERE dirName = '"+dirName+"'");
 	        if (rs.next() == false) {
 	        	System.out.println("查無資料");
 	        }
+	        while(rs.next()){
+	              String s = iCount + ". 電影名稱：" + rs.getString("movieName")
+	              					+ ", 上映時間：" + rs.getString("debut")
+	              					+ ", 導演:" + rs.getString("dirName");
+	              System.out.println(s);
+	              iCount++;
+	        }
 		}
+		
+		// 由年份來查詢電影
+		// ***少第一分資料***
 		else if(sCode.equals("4")){
 			System.out.println("請輸入年份");
 			String year = sc.nextLine();
+			int iCount = 1;
 			ResultSet rs =smt.executeQuery("SELECT * FROM movie where debut='"+year+"'");
-	        while(rs.next()){
-	              String s = "電影名稱：" + rs.getString("movieName") +",上映時間："+rs.getString("debut");
-	              System.out.println(s);
-	        }
 	        if (rs.next() == false) {
 	        	System.out.println("查無資料");
+	        }
+	        while(rs.next()){
+	              String s = iCount + ". 電影名稱：" + rs.getString("movieName")
+	              					+ ", 上映時間：" + rs.getString("debut");
+	              System.out.println(s);
+	              iCount++;
 	        }
 		}
 	}
 	
+	// 搜尋演員
+	// ***少第一分資料***
 	private static void searchActor() throws Exception{
+		int i = 1;
         ResultSet rs =smt.executeQuery("SELECT * FROM actor");
-        while(rs.next()){
-              String s = "演員名稱：" + rs.getString("actName") + ",演員生日：" + rs.getString("actBirth")+",演員性別："+rs.getString("actSex");
-              System.out.println(s);
-        }
         if (rs.next() == false) {
         	System.out.println("查無資料");
         }
+        while(rs.next()){
+              String s = i + ". 演員名稱：" + rs.getString("actName") 
+              			   + ", 演員生日：" + rs.getString("actBirth")
+              			   + ", 演員性別：" + rs.getString("actSex");
+              System.out.println(s);
+              i++;
+        }
 	}
 	
+	// 查看前10大顧客
+	private static void topTencustomer() throws SQLException{
+		HashMap<String, Integer> conMap = new HashMap<String, Integer>();
+		ResultSet rs = smt.executeQuery("SELECT * FROM customer ");
+		while(rs.next()){
+			String custName = rs.getString("custName");
+			conMap.put(custName, 0);
+		}
+		ResultSet rs1 =smt.executeQuery("SELECT * FROM download Natural join customer Natural join movie where download.customerID = customer.custID and download.movieName = movie.movieName");
+		while(rs1.next()){
+			String custName = rs1.getString("custName");
+			int consumption = rs1.getInt("cost");
+			consumption = consumption + conMap.get(custName);
+			conMap.put(custName,consumption);
+			//System.out.println(custName+":"+consumption);
+		}
+		Iterator<String> it = conMap.keySet().iterator();
+		Comparator<Integer> keyComparator = new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				// TODO Auto-generated method stub
+				return o2.compareTo(o1);
+			}
+	    };
+		Map<Integer,String> temp = new TreeMap<Integer,String>(keyComparator);
+		while(it.hasNext()){
+			Object key =it.next();
+			temp.put(conMap.get(key), (String) key);
+			//System.out.println(key+" "+conMap.get(key));
+		}
+		int i = 0;
+		for (Entry<Integer, String> entry : temp.entrySet()) {
+	        System.out.println(entry.getValue() + ":" + entry.getKey());
+	        i++;
+	        if(i>9){
+	        	break;
+	        }
+	    }
+	}	
+	
+	// 新增功能
 	private static void addAll() throws Exception{
-		// 新增演員
-		System.out.println("請輸入欲新增項目 1.演員   2.電影    3.會員 ");
+		System.out.println("請輸入欲新增項目 ：1.演員   2.電影    3.會員 ");
 		String item = sc.nextLine();
+		
+		// 新增演員
 		if(item.equals("1")){
 			System.out.println("請輸入演員名稱：");
 			String actName = sc.nextLine();
@@ -158,12 +242,16 @@ public class Features {
 			pSmt.setString(4, actSex);
 			pSmt.executeUpdate();
 
+			// 確認已新增新演員
 			ResultSet rs1 = smt.executeQuery("SELECT * FROM actor where actName='"+actName+"'");
 			while(rs1.next()){
-				String s = "已新增   演員名稱：" + rs.getString("actName") +",  出生日期："+rs.getString("actBirth")+",  演員性別："+rs.getString("actSex");
+				String s = "已新增   演員名稱：" + rs1.getString("actName") 
+						 + ",  出生日期：" + rs1.getString("actBirth") 
+						 + ",  演員性別：" + rs1.getString("actSex");
 				System.out.println(s);
 			}
 		}
+		
 		// 新增電影
 		else if(item.equals("2")){
 			System.out.println("請輸入電影名稱：");
@@ -174,24 +262,27 @@ public class Features {
 			int debut = sc.nextInt();
 			System.out.println("請輸入下載費用：");
 			String cost = sc.nextLine();
-			System.out.println("請輸入本片導演");
+		    System.out.println("請輸入本片導演：");
 			String dir = sc.nextLine();
 			System.out.println("請輸入出版商：");
 			String publish = sc.nextLine();
 			
+			// 新增movie table資料
 			PreparedStatement pSmt = connection.prepareStatement("insert into movie(movieName,debut,cost,publish) values(?,?,?,?)");
-			pSmt.setString(1,movie);
-			pSmt.setInt(2,debut);
-			pSmt.setString(3,cost);
-			pSmt.setString(4,publish);
+			pSmt.setString(1, movie);
+			pSmt.setInt(2, debut);
+			pSmt.setString(3, cost);
+			pSmt.setString(4, publish);
 			pSmt.executeUpdate();
 
+			// 新增genre table資料
 			PreparedStatement pSmt2 = connection.prepareStatement("insert into genre(movieName,movieGenre) values(?,?)");
 			pSmt2.setString(1, movie);
-			pSmt2.setString(2,cate);
+			pSmt2.setString(2, cate);
 			pSmt2.executeUpdate();
-
 		}
+		
+		// 新增會員
 		else if(item.equals("3")){
 			System.out.println("請輸入會員姓名");
 			String custName = sc.nextLine();
@@ -203,7 +294,8 @@ public class Features {
 			pSmt.setString(2, custName);
 			pSmt.setInt(3,0);
 			pSmt.executeUpdate(); 
-			//ResultSet rs2 = pSmt.executeQuery();
+			
+			// 確認已新增新會員
 			ResultSet rs1 = smt.executeQuery("SELECT * FROM customer where custName='"+custName+"'");
 			while(rs1.next()){
 				String s = "已新增   會員名稱：" + rs.getString("custName") +",  餘額："+rs.getString("Balance");
@@ -212,6 +304,7 @@ public class Features {
 		}
 	}
 	
+	// 管理會員
 	private static void manageMember() throws SQLException{
 		System.out.println("請選擇管理會員功能： 1.查看會員狀況  2.修改會員資料");
 		String item = sc.nextLine();
@@ -240,6 +333,7 @@ public class Features {
 		}
 	}
 	
+	// 最新年度前10下載量電
 	private static void topTenMovie() throws SQLException{
 		ResultSet rs = smt.executeQuery("SELECT * FROM download");
 		movieMap = new HashMap<String, Integer>();
@@ -286,44 +380,5 @@ public class Features {
 				break;
 			}
 		}	
-	}
-	
-	private static void topTencustomer() throws SQLException{
-		HashMap<String, Integer> conMap = new HashMap<String, Integer>();
-		ResultSet rs = smt.executeQuery("SELECT * FROM customer ");
-		while(rs.next()){
-			String custName = rs.getString("custName");
-			conMap.put(custName, 0);
-		}
-		ResultSet rs1 =smt.executeQuery("SELECT * FROM download Natural join customer Natural join movie where download.customerID = customer.custID and download.movieName = movie.movieName");
-		while(rs1.next()){
-			String custName = rs1.getString("custName");
-			int consumption = rs1.getInt("cost");
-			consumption = consumption + conMap.get(custName);
-			conMap.put(custName,consumption);
-			//System.out.println(custName+":"+consumption);
-		}
-		Iterator<String> it = conMap.keySet().iterator();
-		Comparator<Integer> keyComparator = new Comparator<Integer>() {
-			@Override
-			public int compare(Integer o1, Integer o2) {
-				// TODO Auto-generated method stub
-				return o2.compareTo(o1);
-			}
-	    };
-		Map<Integer,String> temp = new TreeMap<Integer,String>(keyComparator);
-		while(it.hasNext()){
-			Object key =it.next();
-			temp.put(conMap.get(key), (String) key);
-			//System.out.println(key+" "+conMap.get(key));
-		}
-		int i = 0;
-		for (Entry<Integer, String> entry : temp.entrySet()) {
-	        System.out.println(entry.getValue() + ":" + entry.getKey());
-	        i++;
-	        if(i>9){
-	        	break;
-	        }
-	    }
 	}
 }
