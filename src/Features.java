@@ -28,16 +28,22 @@ public class Features {
 		sc = new Scanner(System.in);
 		int exit = 1;
 		while (exit != 0) {
-			System.out.println("請輸入功能代碼： 1.查詢    2.查看前10大顧客   3.新增   4.管理會員    5.最新年度前10下載量電影   6.離開");
+			System.out.println("請輸入功能代碼： 1.查詢    2.查看前10大會員   3.新增   4.管理會員    5.最新年度前10下載量電影     6.     7.離開");
 			String funcCode = sc.nextLine();
 			if (funcCode.equals("1")) {
-				System.out.println("請輸入查詢項目: 1.電影   2.演員");
+				System.out.println("請輸入查詢項目: 1.電影   2.演員    3.銷售狀況    4.特定會員");
 				String item = sc.nextLine();
 				if (item.equals("1")) {
 					searchMovie();
 				}
 				else if (item.equals("2")) {
 					searchActor();
+				}
+				else if (item.equals("3")) {
+					saleStatus();
+				}
+				else if (item.equals("4")) {
+					saleStatus();
 				}
 			}
 			if(funcCode.equals("2")){
@@ -211,7 +217,7 @@ public class Features {
 		}
 		int i = 0;
 		for (Entry<Integer, String> entry : temp.entrySet()) {
-	        System.out.println(entry.getValue() + ":" + entry.getKey());
+	        System.out.println(entry.getValue() + "   已消費:" + entry.getKey());
 	        i++;
 	        if(i>9){
 	        	break;
@@ -380,5 +386,27 @@ public class Features {
 				break;
 			}
 		}	
+	}
+	
+	private static void saleStatus() throws SQLException{
+		System.out.println("將會列出輸入的電影類型銷售狀況");
+		System.out.println("請輸入電影類型:");
+		String type = sc.nextLine();
+		String search = "SELECT * FROM genre Natural join download where genre.movieName = download.movieName and movieGenre = '"+type+"'";
+		int[] month = new int[13];
+		int max=0 ,maxMonth=0;
+		ResultSet rs = smt.executeQuery(search);
+		while(rs.next()){
+			int dMonth = Integer.parseInt(rs.getString("downloadMonth"));
+			month[dMonth] +=1;
+		}
+		for(int i=0 ;i<month.length;i++){
+			if(max<month[i]){
+				max = month[i];
+				maxMonth = i;
+			}
+			else{continue;}
+		}
+		System.out.println("電影類型:"+type+" 在"+maxMonth+"月銷售量最高，共"+max+"次。");
 	}
 }
